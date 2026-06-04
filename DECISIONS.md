@@ -45,13 +45,16 @@ take-home where the reviewer runs `docker compose up`, alembic adds a step
 without earning anything. The model layer is set up so that adding alembic
 later is a one-time `alembic init` + autogen.
 
-**No Hatchet.** The spec calls it optional. The matching engine is a pure
-function that takes an application and returns ranked results in maybe 20ms,
-so there's nothing to parallelize that would noticeably help. Where Hatchet
-would slot in: kicking off a workflow on `POST /applications/{id}/evaluate`
-that fans out per-lender evaluations in parallel and persists results with
-retry. The current code structure (one `evaluate_program` per lender) would
-become one Hatchet task per lender with a join step.
+**No Hatchet, but the async + retry pattern is in place.** Hatchet itself
+needs its own server + worker pool which is a lot for a take-home, but the
+shape it would orchestrate is wired up: `POST /applications/{id}/evaluate`
+creates an `UnderwritingRun` row, fans out per-lender evaluation via
+`asyncio.gather`, retries each lender up to 3 times with exponential
+backoff, persists `lenders_done` as it goes, and ends in `completed` or
+`failed`. Run status is queryable at `GET /applications/runs/{run_id}`.
+Swapping to real Hatchet is replacing `asyncio.gather` with parallel task
+spawns and moving the retry policy from the inline decorator to Hatchet's
+config.
 
 **No auth.** Single-user demo. Adding it would be FastAPI dependency on every
 router plus a login screen, and gets in the way of demoing.
@@ -82,6 +85,25 @@ function decorated with `@register_composite`. For a true plugin system
 you'd want lender configs to ship their own validators. Today, three
 composites cover the cases I saw across the 5 lenders (`revolver_limit`,
 `clean_credit_history`, `comp_credit_pct`).
+
+## Feature derivation
+
+The matching engine sees a `derive()`-pass before rules evaluate. Right now
+it computes:
+
+- `loan_request.equipment_age_years` from `equipment_year` when only the
+  year is provided. So an underwriter can fill in "2020" without doing
+  the subtraction themselves and rules like Apex's `equipment_age_years
+  lte 5` still work.
+- `borrower.business_type` from `industry`, mapping the narrow industry
+  slug (e.g. `machine_tools`) to a coarser bucket (`manufacturing`). This
+  lets a future rule key off the coarse bucket without each lender having
+  to enumerate every slug.
+
+Adding more derivations is a single function in `matching/features.py`.
+The intent is that rules reference whatever field they want to constrain;
+if that field needs to be computed from something else, the derivation
+lives in one place and the rule yaml stays declarative.
 
 ## What I'd add with more time
 

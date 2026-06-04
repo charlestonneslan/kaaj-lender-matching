@@ -4,6 +4,7 @@ import NewApplication from "./pages/NewApplication";
 import ApplicationDetail from "./pages/ApplicationDetail";
 import LendersList from "./pages/LendersList";
 import LenderDetail from "./pages/LenderDetail";
+import NewLender from "./pages/NewLender";
 
 const navLink = ({ isActive }: { isActive: boolean }) =>
   `px-3 py-2 rounded text-sm ${
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/new" element={<NewApplication />} />
           <Route path="/applications/:id" element={<ApplicationDetail />} />
           <Route path="/lenders" element={<LendersList />} />
+          <Route path="/lenders/new" element={<NewLender />} />
           <Route path="/lenders/:id" element={<LenderDetail />} />
         </Routes>
       </main>

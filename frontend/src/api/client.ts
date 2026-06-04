@@ -4,8 +4,18 @@ import type {
   ApplicationSummary,
   Lender,
   MatchResult,
+  Program,
   Rule,
 } from "../types";
+
+export type LenderCreate = Omit<Lender, "id" | "active" | "programs"> & {
+  active?: boolean;
+  programs?: Array<Omit<Program, "id" | "rules"> & { rules?: Array<Omit<Rule, "id" | "program_id">> }>;
+};
+
+export type ProgramCreate = Omit<Program, "id" | "rules"> & {
+  rules?: Array<Omit<Rule, "id" | "program_id">>;
+};
 
 const BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
 
@@ -31,12 +41,24 @@ export const api = {
   getApplication: (id: number) => request<ApplicationRead>(`/applications/${id}`),
   createApplication: (body: ApplicationCreate) =>
     request<ApplicationRead>("/applications", { method: "POST", body: JSON.stringify(body) }),
+  updateApplication: (id: number, body: ApplicationCreate) =>
+    request<ApplicationRead>(`/applications/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
   evaluate: (id: number) =>
     request<MatchResult[]>(`/applications/${id}/evaluate`, { method: "POST" }),
   getResults: (id: number) => request<MatchResult[]>(`/applications/${id}/results`),
 
   listLenders: () => request<Lender[]>("/lenders"),
   getLender: (id: number) => request<Lender>(`/lenders/${id}`),
+  createLender: (body: LenderCreate) =>
+    request<Lender>("/lenders", { method: "POST", body: JSON.stringify(body) }),
+  addProgram: (lenderId: number, body: ProgramCreate) =>
+    request<Program>(`/lenders/${lenderId}/programs`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   updateRule: (id: number, body: Omit<Rule, "id" | "program_id">) =>
     request<Rule>(`/lenders/rules/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
   deleteRule: (id: number) =>

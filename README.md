@@ -6,16 +6,41 @@ policies, returns ranked matches with per-rule pass/fail explanations.
 
 ## Quickstart
 
+### With Docker
+
 ```sh
 docker compose up --build
 ```
 
-That brings up Postgres, the FastAPI backend on `:8000`, and the React frontend
-on `:5173`. The backend auto-seeds the 5 lenders from `backend/lenders/*.yaml`
-on first boot.
+Brings up Postgres on `:5432`, FastAPI on `:8000`, React/Vite on `:5173`. The
+backend auto-seeds the 5 lenders from `backend/lenders/*.yaml` on first boot.
 
-Open http://localhost:5173, click **New Application**, hit submit. You'll get a
-ranked list of lender matches with reasons.
+### Without Docker (sqlite fallback)
+
+Useful if your Docker Desktop is acting up. Backend defaults to Postgres but
+runs cleanly against sqlite when you pass `DATABASE_URL`:
+
+```sh
+# backend (terminal 1)
+cd backend
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+DATABASE_URL=sqlite:///./kaaj.db python -m app.seed
+DATABASE_URL=sqlite:///./kaaj.db uvicorn app.main:app --reload --port 8000
+
+# frontend (terminal 2)
+cd frontend
+npm install
+npm run dev
+```
+
+Then open http://localhost:5173, click **New Application**, hit submit. You
+get a ranked list of lender matches with per-rule pass/fail reasons.
+
+Run the tests:
+```sh
+cd backend && pytest
+```
 
 ## What's in the box
 
@@ -85,17 +110,37 @@ OpenAPI docs at http://localhost:8000/docs once it's running.
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/applications` | list applications |
-| POST | `/applications` | create new application (full payload) |
+| POST | `/applications` | create new application |
 | GET | `/applications/{id}` | get one |
-| POST | `/applications/{id}/evaluate` | run matching |
-| GET | `/applications/{id}/results` | get last results |
+| PUT | `/applications/{id}` | update all sections |
 | DELETE | `/applications/{id}` | remove |
+| POST | `/applications/{id}/evaluate` | start an underwriting run (async, parallel per-lender) |
+| GET | `/applications/{id}/results` | get the last ranked results |
+| GET | `/applications/{id}/runs` | history of underwriting runs for this app |
+| GET | `/applications/runs/{run_id}` | run status (pending / running / completed / failed) |
 | GET | `/lenders` | list lenders + programs + rules |
 | GET | `/lenders/{id}` | get one |
+| POST | `/lenders` | create a new lender |
+| POST | `/lenders/{id}/programs` | add a program to a lender |
 | POST | `/lenders/programs/{program_id}/rules` | add a rule |
 | PATCH | `/lenders/rules/{rule_id}` | edit a rule |
 | DELETE | `/lenders/rules/{rule_id}` | remove a rule |
 | GET | `/healthz` | liveness |
+
+### The underwriting run
+
+`POST /applications/{id}/evaluate` does two things: creates an
+`UnderwritingRun` row to track status, then fans out per-lender evaluation
+across `asyncio.gather` so the run completes in roughly the slowest
+single lender's time, not the sum. Each per-lender evaluation goes
+through an exponential-backoff retry (3 attempts) so a transient failure
+in one lender's evaluation doesn't kill the whole run. Progress is
+persisted (`lenders_done` ticks up as each lender finishes) and the
+run history is queryable.
+
+In production this is the shape a Hatchet workflow would orchestrate
+across worker pods: one fan-out task per lender, a join step, with
+Hatchet's retry policy instead of the inline decorator.
 
 ## Development
 
