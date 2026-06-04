@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime
 from typing import Awaitable, Callable, TypeVar
 
 from sqlmodel import Session, select
@@ -36,6 +35,7 @@ from app.models import (
     RunStatus,
     UnderwritingRun,
 )
+from app.time import utcnow
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,7 @@ async def run_async(
     session: Session, application: Application, run: UnderwritingRun
 ) -> list[MatchResult]:
     run.status = RunStatus.running
-    run.started_at = datetime.utcnow()
+    run.started_at = utcnow()
     session.add(run)
     session.commit()
 
@@ -98,7 +98,7 @@ async def run_async(
         session.flush()
 
         outcomes = await asyncio.gather(
-            *(_eval_one_lender(l, app_data) for l in lenders)
+            *(_eval_one_lender(ln, app_data) for ln in lenders)
         )
         outcomes.sort(
             key=lambda lo: (
@@ -143,14 +143,14 @@ async def run_async(
             session.commit()
 
         run.status = RunStatus.completed
-        run.finished_at = datetime.utcnow()
+        run.finished_at = utcnow()
         session.add(run)
         session.commit()
         return results
     except Exception as e:
         run.status = RunStatus.failed
         run.error = str(e)
-        run.finished_at = datetime.utcnow()
+        run.finished_at = utcnow()
         session.add(run)
         session.commit()
         raise

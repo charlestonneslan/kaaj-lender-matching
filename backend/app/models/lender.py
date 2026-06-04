@@ -4,6 +4,8 @@ from typing import Any, Optional
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
 
+from app.time import utcnow
+
 
 class Lender(SQLModel, table=True):
     __tablename__ = "lenders"
@@ -14,8 +16,8 @@ class Lender(SQLModel, table=True):
     contact: str | None = None
     notes: str | None = None
     active: bool = True
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
 
     programs: list["Program"] = Relationship(
         back_populates="lender",
@@ -32,8 +34,8 @@ class Program(SQLModel, table=True):
     priority: int = 0
     base_rate: float | None = None
     notes: str | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
 
     lender: Optional[Lender] = Relationship(back_populates="programs")
     rules: list["Rule"] = Relationship(
@@ -54,6 +56,6 @@ class Rule(SQLModel, table=True):
     weight: int = 1
     hard: bool = True
     message: str | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utcnow)
 
     program: Optional[Program] = Relationship(back_populates="rules")

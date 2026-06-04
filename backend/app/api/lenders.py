@@ -47,7 +47,7 @@ def _to_lender_read(lender: Lender) -> LenderRead:
 @router.get("", response_model=list[LenderRead])
 def list_lenders(session: Session = Depends(get_session)):
     lenders = session.exec(select(Lender).order_by(Lender.name)).all()
-    return [_to_lender_read(l) for l in lenders]
+    return [_to_lender_read(ln) for ln in lenders]
 
 
 @router.post("", response_model=LenderRead, status_code=201)

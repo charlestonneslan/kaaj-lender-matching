@@ -6,6 +6,7 @@ from sqlmodel import Session, select
 
 from app.db import get_session
 from app.matching.runner import run_async
+from app.time import utcnow
 from app.models import (
     Application,
     ApplicationStatus,
@@ -74,7 +75,7 @@ def list_applications(session: Session = Depends(get_session)):
 
 @router.post("", response_model=ApplicationRead, status_code=201)
 def create_application(payload: ApplicationCreate, session: Session = Depends(get_session)):
-    app = Application(status=ApplicationStatus.submitted, submitted_at=datetime.utcnow())
+    app = Application(status=ApplicationStatus.submitted, submitted_at=utcnow())
     session.add(app)
     session.flush()
 
@@ -119,7 +120,7 @@ def update_application(
                 setattr(existing, k, v)
             session.add(existing)
 
-    app.updated_at = datetime.utcnow()
+    app.updated_at = utcnow()
     session.add(app)
     session.commit()
     session.refresh(app)
@@ -217,7 +218,7 @@ def get_results(app_id: int, session: Session = Depends(get_session)):
 
 
 def _results_to_read(session: Session, results: list[MatchResult]) -> list[MatchResultRead]:
-    lender_names = {l.id: l.name for l in session.exec(select(Lender)).all()}
+    lender_names = {ln.id: ln.name for ln in session.exec(select(Lender)).all()}
     program_names = {p.id: p.name for p in session.exec(select(Program)).all()}
     out: list[MatchResultRead] = []
     for r in results:

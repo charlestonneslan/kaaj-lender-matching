@@ -1,6 +1,5 @@
-from datetime import datetime
-
 from app.matching.engine import application_to_dict, evaluate_application
+from app.time import utcnow
 from app.models import (
     Application,
     ApplicationStatus,
@@ -34,7 +33,7 @@ def make_app(
     is_private_party: bool = False,
     down_payment_pct: float = 15,
 ) -> Application:
-    app = Application(status=ApplicationStatus.submitted, submitted_at=datetime.utcnow())
+    app = Application(status=ApplicationStatus.submitted, submitted_at=utcnow())
     session.add(app)
     session.flush()
     session.add(
@@ -95,8 +94,6 @@ def test_strong_app_matches_multiple_lenders(seeded_session):
 def test_low_fico_breaks_top_tier(seeded_session):
     app = make_app(seeded_session, fico=640, paynet=640, tib=2, amount=40000)
     results = evaluate_application(seeded_session, app)
-    by_lender = {r.lender_id: r for r in results}
-    apex = next((r for r in results if "apex" in (r.evaluations[0].message.lower() if r.evaluations else "") or True), None)
     eligible_count = sum(1 for r in results if r.eligible)
     assert eligible_count < len(results)
 
@@ -104,7 +101,6 @@ def test_low_fico_breaks_top_tier(seeded_session):
 def test_california_excludes_apex_and_citizens(seeded_session):
     app = make_app(seeded_session, state="CA", amount=40000)
     results = evaluate_application(seeded_session, app)
-    by_lender = {r.lender_id: r for r in results}
     # find apex + citizens results - they should be ineligible due to state
     fail_reasons = []
     for r in results:

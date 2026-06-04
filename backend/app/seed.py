@@ -1,6 +1,5 @@
 import sys
 from pathlib import Path
-from typing import Any
 
 import yaml
 from sqlmodel import Session, select

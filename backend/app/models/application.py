@@ -4,6 +4,8 @@ from typing import Optional
 
 from sqlmodel import Field, Relationship, SQLModel
 
+from app.time import utcnow
+
 
 class ApplicationStatus(StrEnum):
     draft = "draft"
@@ -17,8 +19,8 @@ class Application(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     status: ApplicationStatus = Field(default=ApplicationStatus.draft)
     submitted_at: datetime | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
 
     borrower: Optional["Borrower"] = Relationship(
         back_populates="application",

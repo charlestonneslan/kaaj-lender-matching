@@ -12,6 +12,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
+from app.time import utcnow
+
 INDUSTRY_TO_BUSINESS_TYPE: dict[str, str] = {
     "construction": "trades",
     "manufacturing": "manufacturing",
@@ -28,7 +30,7 @@ INDUSTRY_TO_BUSINESS_TYPE: dict[str, str] = {
 
 
 def derive(app_data: dict, today: datetime | None = None) -> dict:
-    today = today or datetime.utcnow()
+    today = today or utcnow()
     loan = dict(app_data.get("loan_request") or {})
     borrower = dict(app_data.get("borrower") or {})
 

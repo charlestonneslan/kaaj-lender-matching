@@ -5,6 +5,8 @@ from typing import Any, Optional
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
 
+from app.time import utcnow
+
 
 class RunStatus(StrEnum):
     pending = "pending"
@@ -24,7 +26,7 @@ class UnderwritingRun(SQLModel, table=True):
     lenders_total: int = 0
     lenders_done: int = 0
     error: str | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utcnow)
 
 
 class MatchResult(SQLModel, table=True):
@@ -37,7 +39,7 @@ class MatchResult(SQLModel, table=True):
     eligible: bool = False
     fit_score: float = 0.0
     rank: int | None = None
-    evaluated_at: datetime = Field(default_factory=datetime.utcnow)
+    evaluated_at: datetime = Field(default_factory=utcnow)
 
     evaluations: list["RuleEvaluation"] = Relationship(
         back_populates="match_result",

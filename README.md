@@ -48,7 +48,7 @@ cd backend && pytest
 - Rule engine that handles numeric, set-membership, boolean, and composite
   rules with weighted fit scoring
 - Three-section app: applications list/form/detail, lender browser, rule editor
-- 17 backend tests covering the engine + cross-lender matching
+- 25 backend tests covering the engine + cross-lender matching
 
 ## Architecture
 
