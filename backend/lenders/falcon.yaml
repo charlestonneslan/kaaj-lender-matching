@@ -1,0 +1,149 @@
+slug: falcon
+name: Falcon Equipment Finance
+contact: ETickner@FalconEquipmentFinance.com
+notes: |
+  Standard credit box plus a separate trucking program with stricter
+  requirements. 5 credit rating bands (A-E) used for pricing; the
+  PDF doesn't pin exact FICO ranges per band so the bands here are
+  inferred and called out in DECISIONS.md.
+programs:
+  - name: Standard - Commercial
+    priority: 1
+    notes: App-only up to $250K for commercial.
+    rules:
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 680
+        weight: 5
+        hard: true
+        message: "FICO {actual} below minimum 680"
+      - kind: numeric
+        field: business_credit.paynet_score
+        op: gte
+        value: 660
+        weight: 4
+        hard: true
+        message: "PayNet {actual} below minimum 660"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 3
+        weight: 3
+        hard: true
+        message: "Years in business {actual} below 3"
+      - kind: numeric
+        field: loan_request.amount
+        op: lte
+        value: 250000
+        weight: 2
+        hard: true
+        message: "Amount {actual} exceeds commercial app-only cap $250K"
+      - kind: composite
+        field: comp_credit_pct
+        op: call
+        value: 70
+        weight: 3
+        hard: true
+        message: "Comparable credit {actual}% below required 70%"
+      - kind: composite
+        field: bk_compliant
+        op: call
+        value: 15
+        weight: 2
+        hard: true
+        message: "Bankruptcy must be discharged 15+ years (got {actual})"
+
+  - name: Standard - Manufacturing
+    priority: 2
+    notes: App-only up to $350K for manufacturing (machine tools, woodworking).
+    rules:
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 680
+        weight: 5
+        hard: true
+        message: "FICO {actual} below minimum 680"
+      - kind: numeric
+        field: business_credit.paynet_score
+        op: gte
+        value: 660
+        weight: 4
+        hard: true
+        message: "PayNet {actual} below minimum 660"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 3
+        weight: 3
+        hard: true
+        message: "Years in business {actual} below 3"
+      - kind: numeric
+        field: loan_request.amount
+        op: lte
+        value: 350000
+        weight: 2
+        hard: true
+        message: "Amount {actual} exceeds manufacturing cap $350K"
+      - kind: set
+        field: borrower.industry
+        op: in
+        value: [manufacturing, machine_tools, woodworking]
+        weight: 2
+        hard: true
+        message: "Manufacturing program limited to manufacturing industries"
+      - kind: composite
+        field: comp_credit_pct
+        op: call
+        value: 70
+        weight: 3
+        hard: true
+        message: "Comparable credit {actual}% below required 70%"
+
+  - name: Trucking
+    priority: 3
+    notes: A/B credits only. 5+ trucks operating, 5+ years TIB.
+    rules:
+      - kind: set
+        field: borrower.industry
+        op: in
+        value: [trucking, logging]
+        weight: 2
+        hard: true
+        message: "Trucking program limited to trucking/logging"
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 700
+        weight: 5
+        hard: true
+        message: "FICO {actual} below trucking minimum 700"
+      - kind: numeric
+        field: business_credit.paynet_score
+        op: gte
+        value: 680
+        weight: 4
+        hard: true
+        message: "PayNet {actual} below trucking minimum 680"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 5
+        weight: 3
+        hard: true
+        message: "Years in business {actual} below trucking minimum 5"
+      - kind: numeric
+        field: loan_request.amount
+        op: lte
+        value: 150000
+        weight: 2
+        hard: true
+        message: "Amount {actual} exceeds trucking app-only cap $150K"
+      - kind: numeric
+        field: loan_request.equipment_age_years
+        op: lte
+        value: 10
+        weight: 2
+        hard: true
+        message: "Class 8 trucks/trailers must be 10y or newer"

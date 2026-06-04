@@ -1,0 +1,231 @@
+slug: apex
+name: Apex Commercial Capital
+contact: credit@apexcommercial.com
+notes: |
+  Rate-band tiers (A+, A, B, C) on top of a shared standard credit
+  box. Excluded states CA/NV/ND/VT and a long equipment/industry
+  exclusion list. App-only ceilings vary by tier.
+programs:
+  - name: A+ Rate
+    priority: 1
+    base_rate: 6.50
+    rules: &apex_a_plus_rules
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 720
+        weight: 5
+        hard: true
+        message: "FICO {actual} below A+ minimum 720"
+      - kind: numeric
+        field: business_credit.paynet_score
+        op: gte
+        value: 670
+        weight: 4
+        hard: true
+        message: "PayNet {actual} below A+ minimum 670"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 5
+        weight: 3
+        hard: true
+        message: "Years in business {actual} below 5"
+      - kind: numeric
+        field: loan_request.amount
+        op: between
+        value: [10000, 500000]
+        weight: 2
+        hard: true
+        message: "Amount {actual} outside A+ range $10K-$500K"
+      - kind: numeric
+        field: loan_request.equipment_age_years
+        op: lte
+        value: 5
+        weight: 2
+        hard: true
+        message: "Equipment age {actual}y exceeds A+ max 5y"
+      - kind: set
+        field: borrower.state
+        op: not_in
+        value: &apex_excl_states ["CA", "NV", "ND", "VT"]
+        weight: 3
+        hard: true
+        message: "Apex does not lend in {actual}"
+      - kind: set
+        field: borrower.industry
+        op: not_in
+        value: &apex_excl
+          - cannabis
+          - casino
+          - gambling
+          - churches
+          - non_profit
+          - aircraft
+          - boats
+          - atm
+          - audio_visual
+          - copiers
+          - electric_vehicles
+          - fad_medical
+          - furniture
+          - kiosks
+          - leasehold
+          - logging
+          - nail_salon
+          - petroleum
+          - oil_gas
+          - signage
+          - tanning_salon
+          - trucking
+        weight: 3
+        hard: true
+        message: "Industry {actual} on Apex exclusion list"
+      - kind: boolean
+        field: loan_request.is_private_party
+        op: eq
+        value: false
+        weight: 2
+        hard: true
+        message: "A+ program excludes private party sales"
+
+  - name: A Rate
+    priority: 2
+    base_rate: 7.25
+    rules:
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 700
+        weight: 5
+        hard: true
+        message: "FICO {actual} below A minimum 700"
+      - kind: numeric
+        field: business_credit.paynet_score
+        op: gte
+        value: 660
+        weight: 4
+        hard: true
+        message: "PayNet {actual} below A minimum 660"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 5
+        weight: 3
+        hard: true
+        message: "Years in business {actual} below 5"
+      - kind: numeric
+        field: loan_request.amount
+        op: between
+        value: [10000, 500000]
+        weight: 2
+        hard: true
+        message: "Amount {actual} outside A range $10K-$500K"
+      - kind: set
+        field: borrower.state
+        op: not_in
+        value: *apex_excl_states
+        weight: 3
+        hard: true
+        message: "Apex does not lend in {actual}"
+      - kind: set
+        field: borrower.industry
+        op: not_in
+        value: *apex_excl
+        weight: 3
+        hard: true
+        message: "Industry {actual} on Apex exclusion list"
+
+  - name: B Rate
+    priority: 3
+    base_rate: 8.25
+    rules:
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 670
+        weight: 5
+        hard: true
+        message: "FICO {actual} below B minimum 670"
+      - kind: numeric
+        field: business_credit.paynet_score
+        op: gte
+        value: 650
+        weight: 4
+        hard: true
+        message: "PayNet {actual} below B minimum 650"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 3
+        weight: 3
+        hard: true
+        message: "Years in business {actual} below 3"
+      - kind: numeric
+        field: loan_request.amount
+        op: between
+        value: [10000, 250000]
+        weight: 2
+        hard: true
+        message: "Amount {actual} outside B range $10K-$250K"
+      - kind: set
+        field: borrower.state
+        op: not_in
+        value: *apex_excl_states
+        weight: 3
+        hard: true
+        message: "Apex does not lend in {actual}"
+      - kind: set
+        field: borrower.industry
+        op: not_in
+        value: *apex_excl
+        weight: 3
+        hard: true
+        message: "Industry {actual} on Apex exclusion list"
+
+  - name: C Rate
+    priority: 4
+    base_rate: 11.00
+    rules:
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 640
+        weight: 5
+        hard: true
+        message: "FICO {actual} below C minimum 640"
+      - kind: numeric
+        field: business_credit.paynet_score
+        op: gte
+        value: 640
+        weight: 4
+        hard: true
+        message: "PayNet {actual} below C minimum 640"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 2
+        weight: 3
+        hard: true
+        message: "Years in business {actual} below 2"
+      - kind: numeric
+        field: loan_request.amount
+        op: between
+        value: [10000, 100000]
+        weight: 2
+        hard: true
+        message: "Amount {actual} outside C range $10K-$100K"
+      - kind: set
+        field: borrower.state
+        op: not_in
+        value: *apex_excl_states
+        weight: 3
+        hard: true
+        message: "Apex does not lend in {actual}"
+      - kind: set
+        field: borrower.industry
+        op: not_in
+        value: *apex_excl
+        weight: 3
+        hard: true
+        message: "Industry {actual} on Apex exclusion list"

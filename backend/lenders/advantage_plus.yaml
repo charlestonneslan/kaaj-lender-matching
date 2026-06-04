@@ -1,0 +1,136 @@
+slug: advantage_plus
+name: Advantage+ Financing
+contact: SalesSupport@advantageplusfinancing.com
+notes: |
+  Non-trucking Ideal Customer Profile up to $75K. Single program with
+  alt FICO floor for startups. No bankruptcies, no judgments, no
+  foreclosures, no repossessions, no tax liens, no recent collections.
+  US citizens only.
+programs:
+  - name: Standard ICP (non-trucking)
+    priority: 1
+    rules:
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 680
+        weight: 5
+        hard: true
+        message: "FICO {actual} below minimum 680 (Equifax v5)"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 3
+        weight: 3
+        hard: true
+        message: "Industry experience {actual}y below minimum 3"
+      - kind: numeric
+        field: loan_request.amount
+        op: between
+        value: [10000, 75000]
+        weight: 3
+        hard: true
+        message: "Amount {actual} outside $10K-$75K range"
+      - kind: numeric
+        field: loan_request.term_months
+        op: lte
+        value: 60
+        weight: 2
+        hard: true
+        message: "Term {actual}mo exceeds max 60mo"
+      - kind: numeric
+        field: loan_request.down_payment_pct
+        op: gte
+        value: 10
+        weight: 2
+        hard: true
+        message: "Down payment {actual}% below minimum 10%"
+      - kind: set
+        field: borrower.industry
+        op: not_in
+        value: [trucking]
+        weight: 3
+        hard: true
+        message: "Trucking applications go to a different program"
+      - kind: boolean
+        field: borrower.is_us_citizen
+        op: eq
+        value: true
+        weight: 2
+        hard: true
+        message: "US Citizen required"
+      - kind: boolean
+        field: guarantor.has_bankruptcy
+        op: eq
+        value: false
+        weight: 3
+        hard: true
+        message: "Bankruptcies not financed"
+      - kind: composite
+        field: clean_credit_history
+        op: call
+        value: null
+        weight: 3
+        hard: true
+        message: "Disqualifying credit flag(s): {actual}"
+
+  - name: Startup ICP (non-trucking)
+    priority: 2
+    notes: Applied when borrower flags as startup.
+    rules:
+      - kind: boolean
+        field: borrower.is_startup
+        op: eq
+        value: true
+        weight: 1
+        hard: true
+        message: "Startup program applies only to startup borrowers"
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 700
+        weight: 5
+        hard: true
+        message: "FICO {actual} below startup minimum 700"
+      - kind: numeric
+        field: loan_request.amount
+        op: between
+        value: [10000, 75000]
+        weight: 3
+        hard: true
+        message: "Amount {actual} outside $10K-$75K range"
+      - kind: numeric
+        field: loan_request.term_months
+        op: lte
+        value: 60
+        weight: 2
+        hard: true
+        message: "Term {actual}mo exceeds max 60mo"
+      - kind: numeric
+        field: loan_request.down_payment_pct
+        op: gte
+        value: 20
+        weight: 2
+        hard: true
+        message: "Startups require 10% down + 10% security deposit"
+      - kind: boolean
+        field: borrower.is_us_citizen
+        op: eq
+        value: true
+        weight: 2
+        hard: true
+        message: "US Citizen required"
+      - kind: boolean
+        field: guarantor.has_bankruptcy
+        op: eq
+        value: false
+        weight: 3
+        hard: true
+        message: "Bankruptcies not financed"
+      - kind: composite
+        field: clean_credit_history
+        op: call
+        value: null
+        weight: 3
+        hard: true
+        message: "Disqualifying credit flag(s): {actual}"

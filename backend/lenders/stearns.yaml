@@ -1,0 +1,238 @@
+slug: stearns
+name: Stearns Bank Equipment Finance
+contact: Equipment Finance partner desk
+notes: |
+  Tier-based credit box. Three primary tiers, plus alt paths for
+  applications without a PayNet score and for corp-only deals. Hard
+  restrictions on a long industry exclusion list, no BK in 7 years,
+  and revolver utilization limits.
+programs:
+  - name: Tier 1 (with PayNet)
+    priority: 1
+    rules:
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 725
+        weight: 5
+        hard: true
+        message: "FICO {actual} below Tier 1 minimum 725"
+      - kind: numeric
+        field: business_credit.paynet_score
+        op: gte
+        value: 685
+        weight: 4
+        hard: true
+        message: "PayNet {actual} below Tier 1 minimum 685"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 3
+        weight: 3
+        hard: true
+        message: "Years in business {actual} below minimum 3"
+      - kind: set
+        field: borrower.industry
+        op: not_in
+        value: &stearns_excl
+          - gaming
+          - hazmat
+          - oil_gas
+          - msb
+          - adult
+          - non_essential
+          - foreign
+          - weapons
+          - beauty_salon
+          - tanning_salon
+          - tattoo
+          - aesthetic
+          - real_estate
+          - otr
+          - restaurant
+          - car_wash
+        weight: 3
+        hard: true
+        message: "Industry {actual} on Stearns exclusion list"
+      - kind: boolean
+        field: borrower.has_physical_location
+        op: eq
+        value: true
+        weight: 2
+        hard: true
+        message: "Stearns requires a physical business location"
+      - kind: boolean
+        field: guarantor.has_bankruptcy
+        op: eq
+        value: false
+        weight: 3
+        hard: true
+        message: "Bankruptcy on file; Stearns requires none in last 7 years"
+      - kind: composite
+        field: revolver_limit
+        op: call
+        value: null
+        weight: 2
+        hard: true
+        message: "Revolving over $30K or revolving+unsecured over $50K"
+
+  - name: Tier 2 (with PayNet)
+    priority: 2
+    rules:
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 710
+        weight: 5
+        hard: true
+        message: "FICO {actual} below Tier 2 minimum 710"
+      - kind: numeric
+        field: business_credit.paynet_score
+        op: gte
+        value: 675
+        weight: 4
+        hard: true
+        message: "PayNet {actual} below Tier 2 minimum 675"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 3
+        weight: 3
+        hard: true
+        message: "Years in business {actual} below minimum 3"
+      - kind: set
+        field: borrower.industry
+        op: not_in
+        value: *stearns_excl
+        weight: 3
+        hard: true
+        message: "Industry {actual} on Stearns exclusion list"
+      - kind: boolean
+        field: guarantor.has_bankruptcy
+        op: eq
+        value: false
+        weight: 3
+        hard: true
+        message: "Bankruptcy on file; Stearns requires none in last 7 years"
+      - kind: composite
+        field: revolver_limit
+        op: call
+        value: null
+        weight: 2
+        hard: true
+        message: "Revolving over $30K or revolving+unsecured over $50K"
+
+  - name: Tier 3 (with PayNet)
+    priority: 3
+    rules:
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 700
+        weight: 5
+        hard: true
+        message: "FICO {actual} below Tier 3 minimum 700"
+      - kind: numeric
+        field: business_credit.paynet_score
+        op: gte
+        value: 665
+        weight: 4
+        hard: true
+        message: "PayNet {actual} below Tier 3 minimum 665"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 2
+        weight: 3
+        hard: true
+        message: "Years in business {actual} below minimum 2"
+      - kind: set
+        field: borrower.industry
+        op: not_in
+        value: *stearns_excl
+        weight: 3
+        hard: true
+        message: "Industry {actual} on Stearns exclusion list"
+      - kind: boolean
+        field: guarantor.has_bankruptcy
+        op: eq
+        value: false
+        weight: 3
+        hard: true
+        message: "Bankruptcy on file; Stearns requires none in last 7 years"
+
+  - name: Tier 1 (no PayNet)
+    priority: 4
+    notes: Used when no PayNet score is available.
+    rules:
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 735
+        weight: 5
+        hard: true
+        message: "FICO {actual} below 735 (no-PayNet Tier 1)"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 5
+        weight: 3
+        hard: true
+        message: "Years in business {actual} below 5"
+      - kind: set
+        field: borrower.industry
+        op: not_in
+        value: *stearns_excl
+        weight: 3
+        hard: true
+        message: "Industry {actual} on Stearns exclusion list"
+
+  - name: Tier 2 (no PayNet)
+    priority: 5
+    rules:
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 720
+        weight: 5
+        hard: true
+        message: "FICO {actual} below 720"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 3
+        weight: 3
+        hard: true
+        message: "Years in business {actual} below 3"
+      - kind: set
+        field: borrower.industry
+        op: not_in
+        value: *stearns_excl
+        weight: 3
+        hard: true
+        message: "Industry {actual} on Stearns exclusion list"
+
+  - name: Tier 3 (no PayNet)
+    priority: 6
+    rules:
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 710
+        weight: 5
+        hard: true
+        message: "FICO {actual} below 710"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 2
+        weight: 3
+        hard: true
+        message: "Years in business {actual} below 2"
+      - kind: set
+        field: borrower.industry
+        op: not_in
+        value: *stearns_excl
+        weight: 3
+        hard: true
+        message: "Industry {actual} on Stearns exclusion list"

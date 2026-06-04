@@ -1,0 +1,182 @@
+slug: citizens
+name: Citizens Bank Equipment Finance
+contact: joey.walter@thecitizensbank.net
+notes: |
+  Three-tier app-only program plus a full-financials tier for larger
+  deals. Excludes CA. Cannabis is excluded. BK must be 5+ years
+  discharged. Tier 1 caps at $75K total relationship; Tier 2 variants
+  go up to $50K. Tier 3 covers $75K-$1M with full financials.
+programs:
+  - name: Tier 1 General
+    priority: 1
+    notes: $75K all-in. Homeownership required.
+    rules:
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 700
+        weight: 5
+        hard: true
+        message: "FICO {actual} below Tier 1 minimum 700 (Transunion)"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 2
+        weight: 3
+        hard: true
+        message: "Years in business {actual} below 2"
+      - kind: numeric
+        field: loan_request.amount
+        op: lte
+        value: 75000
+        weight: 3
+        hard: true
+        message: "Amount {actual} exceeds Tier 1 cap $75K"
+      - kind: boolean
+        field: guarantor.homeowner
+        op: eq
+        value: true
+        weight: 2
+        hard: true
+        message: "Tier 1 requires homeownership"
+      - kind: set
+        field: borrower.state
+        op: not_in
+        value: ["CA"]
+        weight: 3
+        hard: true
+        message: "Citizens does not lend in CA"
+      - kind: set
+        field: borrower.industry
+        op: not_in
+        value: [cannabis]
+        weight: 3
+        hard: true
+        message: "Cannabis not financed"
+      - kind: boolean
+        field: borrower.is_us_citizen
+        op: eq
+        value: true
+        weight: 2
+        hard: true
+        message: "US Citizen required"
+      - kind: composite
+        field: bk_compliant
+        op: call
+        value: 5
+        weight: 2
+        hard: true
+        message: "Bankruptcy must be discharged 5+ years (got {actual})"
+
+  - name: Tier 2 Startup
+    priority: 2
+    notes: $50K all-in. Startups with CDL or 5y industry experience.
+    rules:
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 700
+        weight: 5
+        hard: true
+        message: "FICO {actual} below Tier 2 minimum 700"
+      - kind: numeric
+        field: loan_request.amount
+        op: lte
+        value: 50000
+        weight: 3
+        hard: true
+        message: "Amount {actual} exceeds Tier 2 cap $50K"
+      - kind: boolean
+        field: guarantor.homeowner
+        op: eq
+        value: true
+        weight: 2
+        hard: true
+        message: "Tier 2 startup requires homeownership"
+      - kind: set
+        field: borrower.state
+        op: not_in
+        value: ["CA"]
+        weight: 3
+        hard: true
+        message: "Citizens does not lend in CA"
+      - kind: set
+        field: borrower.industry
+        op: not_in
+        value: [cannabis]
+        weight: 3
+        hard: true
+        message: "Cannabis not financed"
+
+  - name: Tier 2 Non-Homeowner
+    priority: 3
+    notes: $50K all-in. 5y at current residence, 2y TIB.
+    rules:
+      - kind: numeric
+        field: guarantor.fico
+        op: gte
+        value: 700
+        weight: 5
+        hard: true
+        message: "FICO {actual} below Tier 2 minimum 700"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 2
+        weight: 3
+        hard: true
+        message: "Years in business {actual} below 2"
+      - kind: numeric
+        field: loan_request.amount
+        op: lte
+        value: 50000
+        weight: 3
+        hard: true
+        message: "Amount {actual} exceeds Tier 2 cap $50K"
+      - kind: set
+        field: borrower.state
+        op: not_in
+        value: ["CA"]
+        weight: 3
+        hard: true
+        message: "Citizens does not lend in CA"
+      - kind: set
+        field: borrower.industry
+        op: not_in
+        value: [cannabis]
+        weight: 3
+        hard: true
+        message: "Cannabis not financed"
+
+  - name: Tier 3 Full Financials
+    priority: 4
+    notes: $75K-$1M with full financials package.
+    rules:
+      - kind: numeric
+        field: loan_request.amount
+        op: between
+        value: [75000, 1000000]
+        weight: 3
+        hard: true
+        message: "Tier 3 amount range is $75K-$1M"
+      - kind: numeric
+        field: borrower.years_in_business
+        op: gte
+        value: 2
+        weight: 3
+        hard: true
+        message: "Years in business {actual} below 2"
+      - kind: set
+        field: borrower.state
+        op: not_in
+        value: ["CA"]
+        weight: 3
+        hard: true
+        message: "Citizens does not lend in CA"
+      - kind: set
+        field: borrower.industry
+        op: not_in
+        value: [cannabis]
+        weight: 3
+        hard: true
+        message: "Cannabis not financed"
