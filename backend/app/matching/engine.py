@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 
 from sqlmodel import Session, select
 
+from app.matching.features import derive
 from app.matching.rules import EvalOutcome, RuleSpec, evaluate_rule
 from app.models import (
     Application,
@@ -79,7 +80,7 @@ def evaluate_program(program: Program, app_data: dict) -> ProgramOutcome:
 
 
 def evaluate_application(session: Session, application: Application) -> list[MatchResult]:
-    app_data = application_to_dict(application)
+    app_data = derive(application_to_dict(application))
     lenders = session.exec(select(Lender).where(Lender.active == True)).all()  # noqa: E712
 
     existing = session.exec(

@@ -7,7 +7,7 @@ from app.models.application import (
     LoanRequest,
 )
 from app.models.lender import Lender, Program, Rule
-from app.models.result import MatchResult, RuleEvaluation
+from app.models.result import MatchResult, RuleEvaluation, RunStatus, UnderwritingRun
 
 __all__ = [
     "Application",
@@ -21,4 +21,6 @@ __all__ = [
     "Program",
     "Rule",
     "RuleEvaluation",
+    "RunStatus",
+    "UnderwritingRun",
 ]

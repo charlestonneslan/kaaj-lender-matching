@@ -1,8 +1,30 @@
 from datetime import datetime
+from enum import StrEnum
 from typing import Any, Optional
 
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
+
+
+class RunStatus(StrEnum):
+    pending = "pending"
+    running = "running"
+    completed = "completed"
+    failed = "failed"
+
+
+class UnderwritingRun(SQLModel, table=True):
+    __tablename__ = "underwriting_runs"
+
+    id: int | None = Field(default=None, primary_key=True)
+    application_id: int = Field(foreign_key="applications.id", index=True)
+    status: RunStatus = Field(default=RunStatus.pending)
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+    lenders_total: int = 0
+    lenders_done: int = 0
+    error: str | None = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class MatchResult(SQLModel, table=True):

@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class RuleIn(BaseModel):
@@ -11,6 +11,23 @@ class RuleIn(BaseModel):
     weight: int = 1
     hard: bool = True
     message: str | None = None
+
+
+class ProgramIn(BaseModel):
+    name: str
+    priority: int = 0
+    base_rate: float | None = None
+    notes: str | None = None
+    rules: list[RuleIn] = Field(default_factory=list)
+
+
+class LenderIn(BaseModel):
+    slug: str
+    name: str
+    contact: str | None = None
+    notes: str | None = None
+    active: bool = True
+    programs: list[ProgramIn] = Field(default_factory=list)
 
 
 class RuleRead(RuleIn):

@@ -1,10 +1,11 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from app.db import get_session
-from app.matching.engine import evaluate_application
+from app.matching.runner import run_async
 from app.models import (
     Application,
     ApplicationStatus,
@@ -15,6 +16,8 @@ from app.models import (
     LoanRequest,
     MatchResult,
     Program,
+    RunStatus,
+    UnderwritingRun,
 )
 from app.schemas import (
     ApplicationCreate,
@@ -93,6 +96,36 @@ def get_application(app_id: int, session: Session = Depends(get_session)):
     return _to_read(app)
 
 
+@router.put("/{app_id}", response_model=ApplicationRead)
+def update_application(
+    app_id: int, payload: ApplicationCreate, session: Session = Depends(get_session)
+):
+    app = session.get(Application, app_id)
+    if app is None:
+        raise HTTPException(404, "application not found")
+
+    sections = {
+        "borrower": (Borrower, payload.borrower),
+        "guarantor": (Guarantor, payload.guarantor),
+        "business_credit": (BusinessCredit, payload.business_credit),
+        "loan_request": (LoanRequest, payload.loan_request),
+    }
+    for attr, (model_cls, data) in sections.items():
+        existing = getattr(app, attr)
+        if existing is None:
+            session.add(model_cls(application_id=app.id, **data.model_dump()))
+        else:
+            for k, v in data.model_dump().items():
+                setattr(existing, k, v)
+            session.add(existing)
+
+    app.updated_at = datetime.utcnow()
+    session.add(app)
+    session.commit()
+    session.refresh(app)
+    return _to_read(app)
+
+
 @router.delete("/{app_id}", status_code=204)
 def delete_application(app_id: int, session: Session = Depends(get_session)):
     app = session.get(Application, app_id)
@@ -102,19 +135,74 @@ def delete_application(app_id: int, session: Session = Depends(get_session)):
     session.commit()
 
 
+class RunRead(BaseModel):
+    id: int
+    application_id: int
+    status: RunStatus
+    started_at: datetime | None
+    finished_at: datetime | None
+    lenders_total: int
+    lenders_done: int
+    error: str | None
+
+
 @router.post("/{app_id}/evaluate", response_model=list[MatchResultRead])
-def run_evaluation(app_id: int, session: Session = Depends(get_session)):
+async def run_evaluation(app_id: int, session: Session = Depends(get_session)):
     app = session.get(Application, app_id)
     if app is None:
         raise HTTPException(404, "application not found")
     if app.borrower is None or app.loan_request is None:
         raise HTTPException(400, "application missing required sections")
 
-    results = evaluate_application(session, app)
+    run = UnderwritingRun(application_id=app.id)
+    session.add(run)
+    session.commit()
+    session.refresh(run)
+
+    results = await run_async(session, app, run)
     app.status = ApplicationStatus.evaluated
     session.add(app)
     session.commit()
     return _results_to_read(session, results)
+
+
+@router.get("/{app_id}/runs", response_model=list[RunRead])
+def list_runs(app_id: int, session: Session = Depends(get_session)):
+    runs = session.exec(
+        select(UnderwritingRun)
+        .where(UnderwritingRun.application_id == app_id)
+        .order_by(UnderwritingRun.created_at.desc())
+    ).all()
+    return [
+        RunRead(
+            id=r.id,
+            application_id=r.application_id,
+            status=r.status,
+            started_at=r.started_at,
+            finished_at=r.finished_at,
+            lenders_total=r.lenders_total,
+            lenders_done=r.lenders_done,
+            error=r.error,
+        )
+        for r in runs
+    ]
+
+
+@router.get("/runs/{run_id}", response_model=RunRead)
+def get_run(run_id: int, session: Session = Depends(get_session)):
+    run = session.get(UnderwritingRun, run_id)
+    if run is None:
+        raise HTTPException(404, "run not found")
+    return RunRead(
+        id=run.id,
+        application_id=run.application_id,
+        status=run.status,
+        started_at=run.started_at,
+        finished_at=run.finished_at,
+        lenders_total=run.lenders_total,
+        lenders_done=run.lenders_done,
+        error=run.error,
+    )
 
 
 @router.get("/{app_id}/results", response_model=list[MatchResultRead])
