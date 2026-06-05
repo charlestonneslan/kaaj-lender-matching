@@ -375,6 +375,8 @@ function NumberInput({
       className="input"
       value={Number.isNaN(value) ? "" : value}
       onChange={(e) => onChange(e.target.valueAsNumber)}
+      // scrolling over a focused number input otherwise nudges the value
+      onWheel={(e) => e.currentTarget.blur()}
     />
   );
 }
