@@ -269,6 +269,30 @@ export default function NewApplication() {
             }
           />
         </Field>
+        <Field label="Trade lines">
+          <input
+            type="number"
+            className="input"
+            value={form.business_credit.trade_lines_count}
+            onChange={(e) =>
+              update("business_credit", {
+                trade_lines_count: Number(e.target.value),
+              })
+            }
+          />
+        </Field>
+        <Field label="Clean payment history (months)">
+          <input
+            type="number"
+            className="input"
+            value={form.business_credit.clean_payment_history_months}
+            onChange={(e) =>
+              update("business_credit", {
+                clean_payment_history_months: Number(e.target.value),
+              })
+            }
+          />
+        </Field>
       </Section>
 
       <Section title="Loan Request">
