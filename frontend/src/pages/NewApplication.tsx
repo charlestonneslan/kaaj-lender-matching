@@ -106,24 +106,16 @@ export default function NewApplication() {
           />
         </Field>
         <Field label="Years in business">
-          <input
-            type="number"
+          <NumberInput
             step="0.5"
-            className="input"
             value={form.borrower.years_in_business}
-            onChange={(e) =>
-              update("borrower", { years_in_business: Number(e.target.value) })
-            }
+            onChange={(n) => update("borrower", { years_in_business: n })}
           />
         </Field>
         <Field label="Annual revenue">
-          <input
-            type="number"
-            className="input"
+          <NumberInput
             value={form.borrower.annual_revenue}
-            onChange={(e) =>
-              update("borrower", { annual_revenue: Number(e.target.value) })
-            }
+            onChange={(n) => update("borrower", { annual_revenue: n })}
           />
         </Field>
         <Field label="">
@@ -169,31 +161,21 @@ export default function NewApplication() {
           />
         </Field>
         <Field label="FICO">
-          <input
-            type="number"
-            className="input"
+          <NumberInput
             value={form.guarantor.fico}
-            onChange={(e) => update("guarantor", { fico: Number(e.target.value) })}
+            onChange={(n) => update("guarantor", { fico: n })}
           />
         </Field>
         <Field label="Revolving balance">
-          <input
-            type="number"
-            className="input"
+          <NumberInput
             value={form.guarantor.revolving_balance}
-            onChange={(e) =>
-              update("guarantor", { revolving_balance: Number(e.target.value) })
-            }
+            onChange={(n) => update("guarantor", { revolving_balance: n })}
           />
         </Field>
         <Field label="Unsecured debt">
-          <input
-            type="number"
-            className="input"
+          <NumberInput
             value={form.guarantor.unsecured_debt}
-            onChange={(e) =>
-              update("guarantor", { unsecured_debt: Number(e.target.value) })
-            }
+            onChange={(n) => update("guarantor", { unsecured_debt: n })}
           />
         </Field>
         <Field label="">
@@ -258,62 +240,36 @@ export default function NewApplication() {
           />
         </Field>
         <Field label="Comparable credit (% of request)">
-          <input
-            type="number"
-            className="input"
+          <NumberInput
             value={form.business_credit.comparable_credit_pct}
-            onChange={(e) =>
-              update("business_credit", {
-                comparable_credit_pct: Number(e.target.value),
-              })
-            }
+            onChange={(n) => update("business_credit", { comparable_credit_pct: n })}
           />
         </Field>
         <Field label="Trade lines">
-          <input
-            type="number"
-            className="input"
+          <NumberInput
             value={form.business_credit.trade_lines_count}
-            onChange={(e) =>
-              update("business_credit", {
-                trade_lines_count: Number(e.target.value),
-              })
-            }
+            onChange={(n) => update("business_credit", { trade_lines_count: n })}
           />
         </Field>
         <Field label="Clean payment history (months)">
-          <input
-            type="number"
-            className="input"
+          <NumberInput
             value={form.business_credit.clean_payment_history_months}
-            onChange={(e) =>
-              update("business_credit", {
-                clean_payment_history_months: Number(e.target.value),
-              })
-            }
+            onChange={(n) => update("business_credit", { clean_payment_history_months: n })}
           />
         </Field>
       </Section>
 
       <Section title="Loan Request">
         <Field label="Amount ($)">
-          <input
-            type="number"
-            className="input"
+          <NumberInput
             value={form.loan_request.amount}
-            onChange={(e) =>
-              update("loan_request", { amount: Number(e.target.value) })
-            }
+            onChange={(n) => update("loan_request", { amount: n })}
           />
         </Field>
         <Field label="Term (months)">
-          <input
-            type="number"
-            className="input"
+          <NumberInput
             value={form.loan_request.term_months}
-            onChange={(e) =>
-              update("loan_request", { term_months: Number(e.target.value) })
-            }
+            onChange={(n) => update("loan_request", { term_months: n })}
           />
         </Field>
         <Field label="Equipment type">
@@ -340,13 +296,9 @@ export default function NewApplication() {
           />
         </Field>
         <Field label="Down payment (%)">
-          <input
-            type="number"
-            className="input"
+          <NumberInput
             value={form.loan_request.down_payment_pct}
-            onChange={(e) =>
-              update("loan_request", { down_payment_pct: Number(e.target.value) })
-            }
+            onChange={(n) => update("loan_request", { down_payment_pct: n })}
           />
         </Field>
         <Field label="">
@@ -401,6 +353,29 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       {label ? <span className="text-slate-600 block mb-1">{label}</span> : null}
       {children}
     </label>
+  );
+}
+
+// Controlled number input that can actually be cleared. Coercing "" to 0
+// leaves a sticky leading zero you can't delete past, so let it go empty
+// (NaN) while editing and let submit-time validation catch a blank.
+function NumberInput({
+  value,
+  onChange,
+  step,
+}: {
+  value: number;
+  onChange: (n: number) => void;
+  step?: string;
+}) {
+  return (
+    <input
+      type="number"
+      step={step}
+      className="input"
+      value={Number.isNaN(value) ? "" : value}
+      onChange={(e) => onChange(e.target.valueAsNumber)}
+    />
   );
 }
 
