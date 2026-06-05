@@ -120,6 +120,18 @@ def test_cannabis_excluded_everywhere_relevant(seeded_session):
     assert any("cannabis" in (ev.message or "").lower() for ev in industry_fails)
 
 
+def test_excluded_equipment_type_blocks_lender(seeded_session):
+    app = make_app(seeded_session, equipment_type="copiers", amount=40000)
+    results = evaluate_application(seeded_session, app)
+    equip_fails = [
+        ev
+        for r in results
+        for ev in r.evaluations
+        if not ev.passed and ev.field == "loan_request.equipment_type"
+    ]
+    assert any("copiers" in (ev.message or "").lower() for ev in equip_fails)
+
+
 def test_oversized_amount_falls_through_to_higher_program(seeded_session):
     app = make_app(seeded_session, amount=300000)
     results = evaluate_application(seeded_session, app)

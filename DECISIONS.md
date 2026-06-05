@@ -56,6 +56,14 @@ Swapping to real Hatchet is replacing `asyncio.gather` with parallel task
 spawns and moving the retry policy from the inline decorator to Hatchet's
 config.
 
+**Re-seeding a lender clears its prior match results.** The seed replaces a
+lender's programs and rules wholesale, so any results computed against the old
+rules are stale by definition. Rather than try to reconcile them, the seed
+deletes that lender's match results (and their per-rule evaluations) first, then
+rebuilds. Re-running evaluate regenerates them against the new rules. This keeps
+the "drop a YAML, re-seed" workflow idempotent even on a database that's already
+been used.
+
 **No auth.** Single-user demo. Adding it would be FastAPI dependency on every
 router plus a login screen, and gets in the way of demoing.
 

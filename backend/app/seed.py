@@ -5,7 +5,7 @@ import yaml
 from sqlmodel import Session, select
 
 from app.db import engine, init_db
-from app.models import Lender, Program, Rule
+from app.models import Lender, MatchResult, Program, Rule
 
 LENDERS_DIR = Path(__file__).resolve().parent.parent / "lenders"
 
@@ -30,6 +30,12 @@ def upsert_lender(session: Session, data: dict) -> Lender:
         existing.name = data["name"]
         existing.contact = data.get("contact")
         existing.notes = data.get("notes")
+        # Replacing this lender's programs invalidates any prior results that
+        # reference its rules, so clear them first (cascades to the per-rule
+        # evaluations). Otherwise the program/rule delete trips their FKs.
+        for mr in session.exec(select(MatchResult).where(MatchResult.lender_id == existing.id)):
+            session.delete(mr)
+        session.flush()
         for program in existing.programs:
             session.delete(program)
         session.flush()

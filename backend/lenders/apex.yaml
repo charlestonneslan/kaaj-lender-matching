@@ -55,32 +55,39 @@ programs:
       - kind: set
         field: borrower.industry
         op: not_in
-        value: &apex_excl
+        value: &apex_excl_industries
           - cannabis
           - casino
           - gambling
           - churches
           - non_profit
+          - fad_medical
+          - logging
+          - nail_salon
+          - petroleum
+          - oil_gas
+          - trucking
+        weight: 3
+        hard: true
+        message: "Industry {actual} on Apex exclusion list"
+      - kind: set
+        field: loan_request.equipment_type
+        op: not_in
+        value: &apex_excl_equipment
           - aircraft
           - boats
           - atm
           - audio_visual
           - copiers
           - electric_vehicles
-          - fad_medical
           - furniture
           - kiosks
           - leasehold
-          - logging
-          - nail_salon
-          - petroleum
-          - oil_gas
           - signage
-          - tanning_salon
-          - trucking
+          - tanning_beds
         weight: 3
         hard: true
-        message: "Industry {actual} on Apex exclusion list"
+        message: "Equipment type {actual} on Apex excluded equipment list"
       - kind: boolean
         field: loan_request.is_private_party
         op: eq
@@ -131,10 +138,17 @@ programs:
       - kind: set
         field: borrower.industry
         op: not_in
-        value: *apex_excl
+        value: *apex_excl_industries
         weight: 3
         hard: true
         message: "Industry {actual} on Apex exclusion list"
+      - kind: set
+        field: loan_request.equipment_type
+        op: not_in
+        value: *apex_excl_equipment
+        weight: 3
+        hard: true
+        message: "Equipment type {actual} on Apex excluded equipment list"
 
   - name: B Rate
     priority: 3
@@ -178,10 +192,17 @@ programs:
       - kind: set
         field: borrower.industry
         op: not_in
-        value: *apex_excl
+        value: *apex_excl_industries
         weight: 3
         hard: true
         message: "Industry {actual} on Apex exclusion list"
+      - kind: set
+        field: loan_request.equipment_type
+        op: not_in
+        value: *apex_excl_equipment
+        weight: 3
+        hard: true
+        message: "Equipment type {actual} on Apex excluded equipment list"
 
   - name: C Rate
     priority: 4
@@ -225,7 +246,14 @@ programs:
       - kind: set
         field: borrower.industry
         op: not_in
-        value: *apex_excl
+        value: *apex_excl_industries
         weight: 3
         hard: true
         message: "Industry {actual} on Apex exclusion list"
+      - kind: set
+        field: loan_request.equipment_type
+        op: not_in
+        value: *apex_excl_equipment
+        weight: 3
+        hard: true
+        message: "Equipment type {actual} on Apex excluded equipment list"
